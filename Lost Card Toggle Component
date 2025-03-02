@@ -1,0 +1,66 @@
+import React from 'react';
+import { Box, Typography, Switch, FormControlLabel, Alert } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+
+const ToggleWrapper = styled(Box)(({ theme, isLost }) => ({
+  padding: theme.spacing(2),
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: isLost ? 'rgba(255, 0, 0, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+  border: `1px solid ${isLost ? 'rgba(255, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
+  transition: 'all 0.3s ease',
+}));
+
+const LostCardLabel = styled(Typography)({
+  display: 'flex',
+  alignItems: 'center',
+  fontWeight: 500,
+  fontFamily: 'Montserrat, sans-serif',
+});
+
+const LostCardSwitch = styled(Switch)(({ theme }) => ({
+  '& .MuiSwitch-switchBase.Mui-checked': {
+    color: '#ff0000',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 0, 0, 0.08)',
+    },
+  },
+  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+    backgroundColor: '#ff0000',
+  },
+}));
+
+const LostCardToggle = ({ isLost, onToggle }) => {
+  const handleChange = (event) => {
+    onToggle(event.target.checked);
+  };
+
+  return (
+    <ToggleWrapper isLost={isLost}>
+      <FormControlLabel
+        control={
+          <LostCardSwitch
+            checked={isLost}
+            onChange={handleChange}
+            inputProps={{ 'aria-label': 'lost card toggle' }}
+          />
+        }
+        label={
+          <LostCardLabel>
+            {isLost ? <LockIcon sx={{ mr: 1, color: 'red' }} /> : <LockOpenIcon sx={{ mr: 1 }} />}
+            Lost Card Mode {isLost ? <Box component="span" sx={{ ml: 1, color: 'red', fontWeight: 'bold' }}>ON</Box> : <Box component="span" sx={{ ml: 1, color: 'gray' }}>OFF</Box>}
+          </LostCardLabel>
+        }
+      />
+      
+      {isLost && (
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          Your physical ID is now deactivated. Contact campus security to reactivate.
+        </Alert>
+      )}
+    </ToggleWrapper>
+  );
+};
+
+export default LostCardToggle;
