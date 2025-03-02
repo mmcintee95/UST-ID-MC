@@ -1,0 +1,125 @@
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, IconButton } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import WarningIcon from '@mui/icons-material/Warning';
+import InfoIcon from '@mui/icons-material/Info';
+import ErrorIcon from '@mui/icons-material/Error';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+
+const BannerContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  width: '100%',
+  padding: theme.spacing(0.5, 2),
+  color: '#fff',
+}));
+
+const AlertContent = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  flexGrow: 1,
+  overflow: 'hidden',
+}));
+
+const AlertText = styled(Typography)(({ theme }) => ({
+  marginLeft: theme.spacing(1),
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  fontSize: '0.9rem',
+  fontFamily: 'Montserrat, sans-serif',
+}));
+
+const AlertNavigation = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  marginLeft: theme.spacing(1),
+}));
+
+const AlertBanner = ({ alerts }) => {
+  const [currentAlertIndex, setCurrentAlertIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  // Auto-rotate alerts every 5 seconds
+  useEffect(() => {
+    if (!alerts || alerts.length <= 1 || paused) return;
+
+    const interval = setInterval(() => {
+      setCurrentAlertIndex((prevIndex) => (prevIndex + 1) % alerts.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [alerts, paused]);
+
+  // Pause rotation on hover
+  const handleMouseEnter = () => setPaused(true);
+  const handleMouseLeave = () => setPaused(false);
+
+  const handlePrevAlert = () => {
+    if (!alerts || alerts.length <= 1) return;
+    setCurrentAlertIndex((prevIndex) => (prevIndex - 1 + alerts.length) % alerts.length);
+  };
+
+  const handleNextAlert = () => {
+    if (!alerts || alerts.length <= 1) return;
+    setCurrentAlertIndex((prevIndex) => (prevIndex + 1) % alerts.length);
+  };
+
+  if (!alerts || alerts.length === 0) {
+    return null;
+  }
+
+  const currentAlert = alerts[currentAlertIndex];
+  
+  const getAlertIcon = (type) => {
+    switch (type) {
+      case 'warning':
+        return <WarningIcon sx={{ color: '#FFC107' }} />;
+      case 'error':
+        return <ErrorIcon sx={{ color: '#F44336' }} />;
+      case 'info':
+      default:
+        return <InfoIcon sx={{ color: '#2196F3' }} />;
+    }
+  };
+
+  return (
+    <BannerContainer 
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <AlertContent>
+        {getAlertIcon(currentAlert.type)}
+        <AlertText>
+          {currentAlert.message}
+        </AlertText>
+      </AlertContent>
+      
+      {alerts.length > 1 && (
+        <AlertNavigation>
+          <Typography variant="caption" sx={{ mr: 1, opacity: 0.7 }}>
+            {currentAlertIndex + 1}/{alerts.length}
+          </Typography>
+          <IconButton 
+            size="small" 
+            onClick={handlePrevAlert}
+            sx={{ color: 'white', p: 0.5 }}
+          >
+            <ChevronLeftIcon fontSize="small" />
+          </IconButton>
+          <IconButton 
+            size="small" 
+            onClick={handleNextAlert}
+            sx={{ color: 'white', p: 0.5 }}
+          >
+            <ChevronRightIcon fontSize="small" />
+          </IconButton>
+        </AlertNavigation>
+      )}
+    </BannerContainer>
+  );
+};
+
+export default AlertBanner;
