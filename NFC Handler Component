@@ -1,0 +1,144 @@
+import React, { useState, useEffect, useContext } from 'react';
+import { Box, Button, Typography, CircularProgress, Alert, Snackbar } from '@mui/material';
+import NfcIcon from '@mui/icons-material/Nfc';
+import { AuthContext } from '../auth/AuthContext';
+
+const NFCHandler = ({ isLost }) => {
+  const { user } = useContext(AuthContext);
+  const [nfcSupported, setNfcSupported] = useState(null);
+  const [isReading, setIsReading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showSnackbar, setShowSnackbar] = useState(false);
+
+  // Check if NFC is supported on this device
+  useEffect(() => {
+    const checkNFCSupport = async () => {
+      if ('NDEFReader' in window) {
+        setNfcSupported(true);
+      } else {
+        setNfcSupported(false);
+      }
+    };
+
+    checkNFCSupport();
+  }, []);
+
+  // Handler for NFC reading
+  const handleNfcRead = async () => {
+    if (!nfcSupported) {
+      setErrorMessage('NFC is not supported on this device.');
+      setShowSnackbar(true);
+      return;
+    }
+
+    if (isLost) {
+      setErrorMessage('Cannot use NFC while in Lost Card Mode.');
+      setShowSnackbar(true);
+      return;
+    }
+
+    setIsReading(true);
+    setResult(null);
+    setErrorMessage('');
+
+    try {
+      const ndef = new window.NDEFReader();
+      await ndef.scan();
+      
+      // In a real app, you'd handle NFC interactions here
+      // This is a simulated response
+      setTimeout(() => {
+        // Simulate a successful NFC read
+        const simulatedAccess = {
+          success: true,
+          location: 'Main Library',
+          timestamp: new Date().toISOString(),
+          studentId: user?.studentId || '000000000'
+        };
+        
+        setResult(simulatedAccess);
+        setIsReading(false);
+        
+        // Reset the result after 3 seconds
+        setTimeout(() => {
+          setResult(null);
+        }, 3000);
+      }, 2000);
+      
+      ndef.onreading = (event) => {
+        console.log("NFC Reading:", event);
+        // Handle actual NFC reading here
+      };
+      
+      ndef.onreadingerror = () => {
+        setErrorMessage('Error reading NFC tag.');
+        setIsReading(false);
+        setShowSnackbar(true);
+      };
+    } catch (error) {
+      console.error(error);
+      setErrorMessage('Failed to start NFC reader. Make sure NFC is enabled on your device.');
+      setIsReading(false);
+      setShowSnackbar(true);
+    }
+  };
+
+  // Fallback message if NFC is not supported
+  if (nfcSupported === false) {
+    return (
+      <Box sx={{ py: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Alert severity="info" sx={{ width: '100%', mb: 2 }}>
+          NFC is not supported on your device. Please use the QR code option instead.
+        </Alert>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ py: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      {result && (
+        <Alert 
+          severity="success" 
+          sx={{ width: '100%', mb: 2 }}
+        >
+          {`Access granted to ${result.location}`}
+        </Alert>
+      )}
+      
+      <Button
+        variant="contained"
+        startIcon={isReading ? <CircularProgress size={20} color="inherit" /> : <NfcIcon />}
+        onClick={handleNfcRead}
+        disabled={isReading || isLost}
+        sx={{ 
+          mb: 1,
+          bgcolor: '#6A0DAD',
+          '&:hover': {
+            bgcolor: '#5A0C93',
+          },
+          '&.Mui-disabled': {
+            bgcolor: isLost ? '#ff000021' : undefined,
+          }
+        }}
+      >
+        {isReading ? 'Scanning...' : 'Tap to Access'}
+      </Button>
+      
+      <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+        {isLost ? 
+          'NFC access is disabled while in Lost Card Mode' : 
+          'Hold your phone near an NFC reader to access campus facilities'}
+      </Typography>
+      
+      <Snackbar
+        open={showSnackbar}
+        autoHideDuration={4000}
+        onClose={() => setShowSnackbar(false)}
+        message={errorMessage}
+      />
+    </Box>
+  );
+};
+
+export default NFCHandler;
