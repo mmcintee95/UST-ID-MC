@@ -1,0 +1,167 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Box, 
+  AppBar, 
+  Toolbar, 
+  IconButton, 
+  Typography, 
+  Drawer, 
+  Divider,
+  Container,
+  Paper
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import CloseIcon from '@mui/icons-material/Close';
+
+import DigitalID from './DigitalID';
+import AccountBalance from '../account/AccountBalance';
+import AlertBanner from '../notifications/AlertBanner';
+import ResourcesSidebar from '../resources/ResourcesSidebar';
+
+const Dashboard = () => {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [alerts, setAlerts] = useState([]);
+
+  useEffect(() => {
+    // In a real app, this would fetch from an API
+    const mockAlerts = [
+      { id: 1, type: 'info', message: 'Dining Hall closes early today at 6:00 PM.' },
+      { id: 2, type: 'warning', message: 'Severe weather warning – classes delayed.' },
+      { id: 3, type: 'info', message: 'Lost and found: ID card found near library.' }
+    ];
+    setAlerts(mockAlerts);
+  }, []);
+
+  const toggleDrawer = (open) => (event) => {
+    if (
+      event.type === 'keydown' &&
+      (event.key === 'Tab' || event.key === 'Shift')
+    ) {
+      return;
+    }
+    setDrawerOpen(open);
+  };
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#000000' }}>
+      <AppBar position="static" sx={{ bgcolor: '#6A0DAD' }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            onClick={toggleDrawer(true)}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography 
+            variant="h6" 
+            component="div" 
+            sx={{ 
+              flexGrow: 1,
+              fontFamily: 'Montserrat, sans-serif',
+              fontWeight: 600 
+            }}
+          >
+            UST-ID
+          </Typography>
+          <IconButton color="inherit" aria-label="notifications">
+            <NotificationsIcon />
+          </IconButton>
+          <IconButton color="inherit" aria-label="account">
+            <AccountCircleIcon />
+          </IconButton>
+        </Toolbar>
+      </AppBar>
+
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={toggleDrawer(false)}
+      >
+        <Box
+          sx={{ width: 280 }}
+          role="presentation"
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
+            <Typography variant="h6" sx={{ fontFamily: 'Montserrat, sans-serif' }}>
+              Campus Resources
+            </Typography>
+            <IconButton onClick={toggleDrawer(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <Divider />
+          <ResourcesSidebar onItemClick={toggleDrawer(false)} />
+        </Box>
+      </Drawer>
+
+      <Container 
+        maxWidth="md" 
+        sx={{ 
+          flexGrow: 1, 
+          py: 4,
+          backgroundImage: 'url(/assets/background-watermark.svg)',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          backgroundSize: '70%',
+          backgroundAttachment: 'fixed',
+          backgroundBlendMode: 'soft-light',
+          backgroundOpacity: 0.1
+        }}
+      >
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            borderRadius: 2, 
+            overflow: 'hidden',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            mb: 3
+          }}
+        >
+          <Box sx={{ p: 2, bgcolor: '#f5f5f5', borderBottom: '1px solid #e0e0e0' }}>
+            <Typography variant="h5" sx={{ fontFamily: 'Montserrat, sans-serif' }}>
+              Your Digital Campus ID
+            </Typography>
+          </Box>
+          <DigitalID />
+        </Paper>
+
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            borderRadius: 2, 
+            overflow: 'hidden',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            mb: 3
+          }}
+        >
+          <Box sx={{ p: 2, bgcolor: '#f5f5f5', borderBottom: '1px solid #e0e0e0' }}>
+            <Typography variant="h5" sx={{ fontFamily: 'Montserrat, sans-serif' }}>
+              Account Balance
+            </Typography>
+          </Box>
+          <AccountBalance />
+        </Paper>
+      </Container>
+
+      <Box 
+        sx={{ 
+          width: '100%', 
+          position: 'sticky', 
+          bottom: 0, 
+          zIndex: 10,
+          bgcolor: 'rgba(0, 0, 0, 0.7)',
+          backdropFilter: 'blur(5px)',
+          p: 1
+        }}
+      >
+        <AlertBanner alerts={alerts} />
+      </Box>
+    </Box>
+  );
+};
+
+export default Dashboard;
