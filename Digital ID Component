@@ -1,0 +1,137 @@
+import React, { useContext, useState } from 'react';
+import { AuthContext } from '../auth/AuthContext';
+import { Box, Card, CardContent, Typography, Avatar, Paper } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import LostCardToggle from './LostCardToggle';
+import QRCodeGenerator from './QRCodeGenerator';
+
+// Styled components
+const IDCard = styled(Card)(({ theme }) => ({
+  backgroundColor: '#6A0DAD', // UST Purple
+  color: 'white',
+  width: '100%',
+  maxWidth: 350,
+  borderRadius: 10,
+  margin: '0 auto',
+  position: 'relative',
+  overflow: 'visible',
+  transition: 'all 0.3s ease',
+  boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+  transform: 'perspective(1000px) rotateX(0deg)',
+  '&:hover': {
+    transform: 'perspective(1000px) rotateX(5deg)',
+    boxShadow: '0 14px 28px rgba(0,0,0,0.25)',
+  },
+}));
+
+const IDBackground = styled(Box)({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  opacity: 0.1,
+  zIndex: 0,
+});
+
+const IDContent = styled(CardContent)({
+  position: 'relative',
+  zIndex: 1,
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  padding: 24,
+});
+
+const StudentAvatar = styled(Avatar)({
+  width: 120,
+  height: 120,
+  border: '4px solid white',
+  boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+  marginBottom: 16,
+});
+
+const StudentName = styled(Typography)({
+  fontWeight: 600,
+  fontSize: '1.5rem',
+  marginBottom: 8,
+  fontFamily: 'Montserrat, sans-serif',
+});
+
+const StudentID = styled(Typography)({
+  fontWeight: 500,
+  fontSize: '1.2rem',
+  marginBottom: 16,
+  fontFamily: 'Montserrat, sans-serif',
+});
+
+const QRContainer = styled(Paper)({
+  padding: 16,
+  marginTop: 16,
+  backgroundColor: 'white',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  borderRadius: 8,
+});
+
+const DigitalID = () => {
+  const { user } = useContext(AuthContext);
+  const [isLost, setIsLost] = useState(false);
+
+  const handleLostToggle = (status) => {
+    setIsLost(status);
+    // In a real app, this would make an API call to update the lost status
+  };
+
+  return (
+    <Box sx={{ py: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <IDCard>
+        <IDBackground>
+          <Box
+            component="img"
+            src="/assets/logo.svg"
+            alt="UST Logo"
+            sx={{ width: '80%', height: 'auto' }}
+          />
+        </IDBackground>
+        <IDContent>
+          <StudentAvatar 
+            src={user?.profilePicture || "/assets/default-avatar.png"}
+            alt={user?.name}
+          />
+          <StudentName variant="h5">{user?.name || "Student Name"}</StudentName>
+          <StudentID variant="subtitle1">ID: {user?.studentId || "000000000"}</StudentID>
+          <Typography variant="body2" textAlign="center" sx={{ mt: 1, opacity: 0.8 }}>
+            University of St. Thomas
+          </Typography>
+        </IDContent>
+      </IDCard>
+
+      <Box sx={{ width: '100%', maxWidth: 350, mt: 3 }}>
+        <LostCardToggle isLost={isLost} onToggle={handleLostToggle} />
+      </Box>
+
+      <QRContainer elevation={1}>
+        <Typography variant="body1" gutterBottom>
+          Campus Access QR Code
+        </Typography>
+        <QRCodeGenerator 
+          data={JSON.stringify({
+            studentId: user?.studentId,
+            timestamp: new Date().toISOString(),
+            isLost: isLost
+          })} 
+        />
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+          Scan at any campus facility for access
+        </Typography>
+      </QRContainer>
+    </Box>
+  );
+};
+
+export default DigitalID;
