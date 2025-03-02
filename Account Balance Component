@@ -216,4 +216,20 @@ const AccountBalance = () => {
               />
             </ListItem>
             <Divider component="li" />
-          </React.Fragment
+          </React.Fragment>
+        ))}
+        <Box sx={{ p: 1, display: 'flex', justifyContent: 'center' }}>
+          <Button 
+            endIcon={<ArrowRightAltIcon />} 
+            size="small" 
+            sx={{ fontSize: '0.8rem' }}
+          >
+            View All Transactions
+          </Button>
+        </Box>
+      </List>
+    </Box>
+  );
+};
+
+export default AccountBalance;
