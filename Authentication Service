@@ -1,0 +1,149 @@
+// auth.service.js
+import axios from 'axios';
+
+// Base API URL (would point to your backend server in production)
+const API_URL = process.env.REACT_APP_API_URL || 'https://api.ustid.example.com';
+
+// Create Axios instance with default config
+const apiClient = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add authorization token to requests when available
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('ust_id_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// For demonstration purposes, mock authentication
+// In a real app, these would make actual API calls
+export const loginUser = async (email, password) => {
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // Validate St. Thomas email
+  if (!email.endsWith('@stthomas.edu')) {
+    throw new Error('Invalid email domain. Please use your St. Thomas email.');
+  }
+
+  // Mock successful login for demo purposes
+  // This would be a real API call in production
+  if (email === 'demo@stthomas.edu' && password === 'password') {
+    return {
+      token: 'mock-jwt-token-would-come-from-server',
+      user: {
+        id: '12345',
+        name: 'John Smith',
+        studentId: '123456789',
+        email: 'demo@stthomas.edu',
+        profilePicture: 'https://randomuser.me/api/portraits/men/1.jpg',
+        role: 'student',
+        premiumSubscription: true,
+        joinDate: '2024-09-01'
+      }
+    };
+  }
+
+  // Mock any login for demo
+  return {
+    token: 'mock-jwt-token-' + Date.now(),
+    user: {
+      id: Date.now().toString(),
+      name: email.split('@')[0].split('.').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+      studentId: Math.floor(100000000 + Math.random() * 900000000).toString(),
+      email: email,
+      profilePicture: null,
+      role: 'student',
+      premiumSubscription: false,
+      joinDate: new Date().toISOString().split('T')[0]
+    }
+  };
+};
+
+export const registerUser = async (userData) => {
+  // In a real app, this would post to an API endpoint
+  try {
+    const response = await apiClient.post('/auth/register', userData);
+    return response.data;
+  } catch (error) {
+    console.error('Register error:', error);
+    throw error;
+  }
+};
+
+export const requestPasswordReset = async (email) => {
+  try {
+    await apiClient.post('/auth/reset-password', { email });
+    return true;
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    throw error;
+  }
+};
+
+export const verifyAccount = async (token) => {
+  try {
+    const response = await apiClient.post('/auth/verify', { token });
+    return response.data;
+  } catch (error) {
+    console.error('Verification error:', error);
+    throw error;
+  }
+};
+
+export const getCurrentUser = async () => {
+  try {
+    const response = await apiClient.get('/auth/me');
+    return response.data;
+  } catch (error) {
+    console.error('Get current user error:', error);
+    throw error;
+  }
+};
+
+export const updateUserProfile = async (userData) => {
+  try {
+    const response = await apiClient.put('/auth/profile', userData);
+    return response.data;
+  } catch (error) {
+    console.error('Update profile error:', error);
+    throw error;
+  }
+};
+
+export const uploadProfilePicture = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+    
+    const response = await apiClient.post('/auth/profile-picture', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Upload profile picture error:', error);
+    throw error;
+  }
+};
+
+export default {
+  loginUser,
+  registerUser,
+  requestPasswordReset,
+  verifyAccount,
+  getCurrentUser,
+  updateUserProfile,
+  uploadProfilePicture,
+};
