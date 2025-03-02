@@ -1,0 +1,219 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Box, 
+  Typography, 
+  Paper, 
+  List, 
+  ListItem, 
+  ListItemText, 
+  Button,
+  Divider,
+  Chip,
+  CircularProgress
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import FastfoodIcon from '@mui/icons-material/Fastfood';
+import LocalAtmIcon from '@mui/icons-material/LocalAtm';
+import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
+
+const BalanceCard = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(2),
+  marginBottom: theme.spacing(2),
+  display: 'flex',
+  alignItems: 'center',
+  backgroundColor: theme.palette.background.default,
+}));
+
+const BalanceIcon = styled(Box)(({ theme, color }) => ({
+  width: 48,
+  height: 48,
+  borderRadius: '50%',
+  backgroundColor: color,
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginRight: theme.spacing(2),
+  color: 'white',
+}));
+
+const TransactionDate = styled(Typography)({
+  fontSize: '0.75rem',
+  color: 'text.secondary',
+});
+
+const AccountBalance = () => {
+  const [balances, setBalances] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate API call to get balance data
+    setTimeout(() => {
+      const mockBalances = {
+        dining: 356.78,
+        flex: 123.45,
+      };
+      
+      const mockTransactions = [
+        { 
+          id: 1, 
+          type: 'dining', 
+          amount: -8.75, 
+          location: 'The View Dining Hall', 
+          date: new Date(2025, 2, 1, 12, 30) 
+        },
+        { 
+          id: 2, 
+          type: 'flex', 
+          amount: -12.99, 
+          location: 'Campus Bookstore', 
+          date: new Date(2025, 2, 1, 9, 15) 
+        },
+        { 
+          id: 3, 
+          type: 'dining', 
+          amount: -6.50, 
+          location: 'Campus Coffee Shop', 
+          date: new Date(2025, 1, 28, 8, 45) 
+        },
+        { 
+          id: 4, 
+          type: 'flex', 
+          amount: -24.99, 
+          location: 'Print Services', 
+          date: new Date(2025, 1, 28, 14, 20) 
+        },
+        { 
+          id: 5, 
+          type: 'dining', 
+          amount: -9.25, 
+          location: 'Summit Marketplace', 
+          date: new Date(2025, 1, 27, 18, 30) 
+        },
+      ];
+
+      setBalances(mockBalances);
+      setTransactions(mockTransactions);
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  const formatDate = (date) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return `Today, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return `Yesterday, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else {
+      return date.toLocaleDateString([], { 
+        month: 'short', 
+        day: 'numeric' 
+      }) + `, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <BalanceCard elevation={1}>
+        <BalanceIcon color="#FF9800">
+          <FastfoodIcon />
+        </BalanceIcon>
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Dining Dollars Balance
+          </Typography>
+          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+            ${balances.dining.toFixed(2)}
+          </Typography>
+        </Box>
+      </BalanceCard>
+
+      <BalanceCard elevation={1}>
+        <BalanceIcon color="#3F51B5">
+          <LocalAtmIcon />
+        </BalanceIcon>
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Flex Account Balance
+          </Typography>
+          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+            ${balances.flex.toFixed(2)}
+          </Typography>
+        </Box>
+      </BalanceCard>
+
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+        <Button
+          variant="contained"
+          startIcon={<AttachMoneyIcon />}
+          sx={{ 
+            bgcolor: '#6A0DAD',
+            '&:hover': {
+              bgcolor: '#5A0C93',
+            } 
+          }}
+        >
+          Add Funds
+        </Button>
+      </Box>
+
+      <Divider sx={{ mb: 2 }}>
+        <Chip 
+          icon={<ReceiptIcon />} 
+          label="Recent Transactions" 
+          sx={{ fontFamily: 'Montserrat, sans-serif' }} 
+        />
+      </Divider>
+
+      <List sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+        {transactions.map((transaction) => (
+          <React.Fragment key={transaction.id}>
+            <ListItem alignItems="flex-start">
+              <ListItemText
+                primary={
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body1" component="span">
+                      {transaction.location}
+                    </Typography>
+                    <Typography 
+                      variant="body1" 
+                      component="span" 
+                      sx={{ 
+                        fontWeight: 600,
+                        color: transaction.amount < 0 ? 'error.main' : 'success.main'
+                      }}
+                    >
+                      ${Math.abs(transaction.amount).toFixed(2)}
+                    </Typography>
+                  </Box>
+                }
+                secondary={
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.5 }}>
+                    <TransactionDate>
+                      {formatDate(transaction.date)}
+                    </TransactionDate>
+                    <Chip 
+                      label={transaction.type === 'dining' ? 'Dining' : 'Flex'} 
+                      size="small"
+                      color={transaction.type === 'dining' ? 'warning' : 'primary'}
+                      sx={{ height: 20, fontSize: '0.7rem' }}
+                    />
+                  </Box>
+                }
+              />
+            </ListItem>
+            <Divider component="li" />
+          </React.Fragment
