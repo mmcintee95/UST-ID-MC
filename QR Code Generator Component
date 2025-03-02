@@ -1,0 +1,78 @@
+import React, { useEffect, useState } from 'react';
+import { Box, Button, CircularProgress } from '@mui/material';
+import QRCode from 'qrcode.react';
+import RefreshIcon from '@mui/icons-material/Refresh';
+
+const QRCodeGenerator = ({ data }) => {
+  const [qrValue, setQrValue] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+
+  // Generate a dynamic QR code with a timestamp to ensure security
+  const generateQR = () => {
+    setLoading(true);
+    setTimeout(() => {
+      // In a real app, this would include a secure token from the server
+      const secureData = {
+        ...JSON.parse(data),
+        timestamp: new Date().toISOString(),
+        expires: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // Expires in 5 minutes
+      };
+      setQrValue(JSON.stringify(secureData));
+      setTimeLeft(300); // Reset timer to 5 minutes
+      setLoading(false);
+    }, 800); // Simulate server request
+  };
+
+  // Countdown timer for QR code expiration
+  useEffect(() => {
+    if (qrValue && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    } else if (timeLeft === 0 && qrValue) {
+      // Auto-refresh when time expires
+      generateQR();
+    }
+  }, [qrValue, timeLeft]);
+
+  // Initial QR code generation
+  useEffect(() => {
+    if (data && !qrValue) {
+      generateQR();
+    }
+  }, [data]);
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 1 }}>
+      {loading ? (
+        <CircularProgress size={150} thickness={2} />
+      ) : (
+        <>
+          <QRCode 
+            value={qrValue} 
+            size={150}
+            level="H"
+            includeMargin={true}
+            renderAs="svg"
+          />
+          <Box sx={{ mt: 1, mb: 2, fontSize: '0.8rem', color: 'text.secondary' }}>
+            Expires in: {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
+          </Box>
+        </>
+      )}
+      <Button
+        variant="outlined"
+        startIcon={<RefreshIcon />}
+        onClick={generateQR}
+        disabled={loading}
+        size="small"
+      >
+        Refresh QR Code
+      </Button>
+    </Box>
+  );
+};
+
+export default QRCodeGenerator;
